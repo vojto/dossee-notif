@@ -6,7 +6,7 @@ Vojtech Rinik
 
 Node.js is an environment that lets you run JavaScript on the server side. We're gonna write a very simple program in Node.js that will run a web server, and a socket server, and forward all HTTP requests to all the connected clients through WebSocket.
 
-![blah](./figure1.png)
+![Figure 1](./figure1.png)
 
 The figure shows what you will be doing in this tutorial: You will start by writing the Notification Server. Then you'll write Java program that will connect to it, and then you'll test everything by making HTTP request from `curl` utility.
 
@@ -27,6 +27,10 @@ It's easier to install [npm](http://npmjs.org/), which is the Node Package Manag
 Install the following modules:
 
 - `websocket-server`. If you're not using npm, download the source code from the [GitHub repo](https://github.com/miksago/node-websocket-server).
+
+## About this repository
+
+This GitHub repository contains the guide, the document you're currently reading. There's also source code of what you'll have when you've finished this guide.
 
 ## Creating simple WebSocket server in Node.js
 
@@ -113,8 +117,93 @@ We can now proceed to connecting to the local server. Replace your `Client.java`
       }
     }
 
-This is all the code you need to communicate with the server. 
+This is all the code you need to communicate with the server. Let's see what's going on in this code.
 
+First (line 6), we create an instance of the `WebSocket` class. We set the URL to localhost, and use the port where our server is running.
+
+Next we set a listener: We instantiate a new anonymous implementation of interface `EventListener`. This is similar to passing anonymous functions in JavaScript, only it looks more complicated because, well, because it's Java.
+
+The interface has single method, `handleEvent` to which an event object is passed when it's triggered. We're interested in two events: message, two print the message when it's received, and error, so we could debug the program when there are complications.
+
+Then we start the server (line 21), send some messages, and close the server. If you run this program, you should see the following output:
+
+    Received message: Echo: Hello!
+    Received message: Echo: World!
+    Closed.  ReadyState=3
+
+---
+
+## Forwarding notifications
+
+The Node.js server will forward notification received through HTTP interface to all clients connected via WebSocket. To create a HTTP server we're gonna use module called `express`. Install it manually, or by typing: `npm install express`.
+
+Now open `server.js` and replace its contents with the following code:
+
+    var ws      = require("websocket-server");
+    var express = require("express")
+
+    var kHttpPort    = 5000;
+    var kSocketPort  = 5001;
+
+    // Create HTTP Server using Express
+    // --------------------------------
+
+    var httpPosted = function(req, res) {
+      data = req.body.payload;
+      console.log("Received data: ", data);
+      websocket.broadcast(data);
+      res.writeHead(200);
+      res.end("200: Notified");
+    }
+
+    var http = express.createServer();
+    http.use(express.bodyParser());
+    http.post('/', httpPosted);
+    http.listen(kHttpPort);
+
+    // Create WebSocket Server
+    // -----------------------
+
+    var clientConnected = function(connection){
+      console.log('Client connected');
+    }
+
+    var websocket = ws.createServer();
+    websocket.addListener("connection", clientConnected);
+    websocket.listen(kSocketPort);
+
+On lines 10-21 we're creating the HTTP server. First we define function that will be called each time a POST request is received. We parse the form data (line 19 adds this functionality) and look `payload` key. Then we simply send this data to all connected clients using the `broadcast` function of WebSocket instance.
+
+The WebSocket code is quite simple too, we don't have to deal with receiving messages anymore, so we just create a new server and start it. 
+
+## Tying everything together
+
+Start the notification server by running the following command:
+
+    cd server/
+    node server.js
+
+Before you start the client, remove line 23. (`ws.close()`). We don't want to close the connection, but stay connected so we would receive the notifications. Also, on line 6, change the port number to `5001`. Then start the client:
+
+    cd client/
+    javac -cp java-websocket-client/build/dist/java-websocket-client.jar Client.java
+    java -cp .:java-websocket-client/build/dist/java-websocket-client.jar Client
+
+Now you can send notifications:
+
+    curl -d 'payload=Hello World!' http://localhost:5000/
+
+## Next tasks for SmartHome
+
+Congratulations, you just wrote a complete notification server.
+
+Your next task in SmartHome project is to send notifications from the SmartHome controller server. You will need to encode them as JSON, and make the HTTP requests from the code. (Not the command line, as until now.)
+
+Then you need to take the simple Java client we wrote here, add it to your Android application, and parse the received messages. (Now we're just printing them.) You will need JSON library to do so.
+
+And here's a mockup of resulting product.
+
+![Figure 2](./figure2.png)
 
 ## References
 

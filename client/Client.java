@@ -3,7 +3,7 @@ import net.rcode.wsclient.WebSocket.Event;
 
 class Client {
   public static void main(String args[]) throws InterruptedException {
-    WebSocket ws = new WebSocket("ws://127.0.0.1:5000/");
+    WebSocket ws = new WebSocket("ws://127.0.0.1:5001/");
 
     ws.addListener(new WebSocket.EventListener() {
       @Override
@@ -19,10 +19,8 @@ class Client {
     });
 
     ws.start();
-    ws.send("Hello!");
-    ws.send("World!");
-    Thread.sleep(1000);
-    ws.close();
+    // Thread.sleep(1000);
+    // ws.close();
     ws.waitForReadyState(WebSocket.CLOSED);
     System.out.println("Closed.  ReadyState=" + ws.getReadyState());
   }
