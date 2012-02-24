@@ -6,7 +6,7 @@ Vojtech Rinik
 
 Node.js is an environment that lets you run JavaScript on the server side. We're gonna write a very simple program in Node.js that will run a web server, and a socket server, and forward all HTTP requests to all the connected clients through WebSocket.
 
-![Figure 1](./figure1.png)
+![Figure 1](https://github.com/vojto/dossee-notif/raw/master/figure1.png)
 
 The figure shows what you will be doing in this tutorial: You will start by writing the Notification Server. Then you'll write Java program that will connect to it, and then you'll test everything by making HTTP request from `curl` utility.
 
@@ -203,7 +203,7 @@ Then you need to take the simple Java client we wrote here, add it to your Andro
 
 And here's a mockup of resulting product.
 
-![Figure 2](./figure2.png)
+![Figure 2](https://github.com/vojto/dossee-notif/raw/master/figure2.png)
 
 ## References
 
